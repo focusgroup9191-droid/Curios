@@ -99,7 +99,7 @@ function ConversationContent() {
       frameCreatedRef.current = false
     }
     await supabase.from('conversations').update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', id)
-    router.push('/discuss')
+    router.push(`/score/${id}`)
   }
 
   return (
