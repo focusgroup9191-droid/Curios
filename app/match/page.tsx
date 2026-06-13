@@ -34,9 +34,26 @@ function MatchContent() {
         return
       }
       if (data) {
-        // matched — data is the conversation id
         cleanup()
         router.push(`/conversation/${data}`)
+        return
+      }
+
+      // RPC returned null — we may have been matched by the other participant.
+      // Check if we're already in an active conversation for this topic.
+      const { data: { user } } = await supabase.auth.getUser()
+      if (cancelled || !user) return
+      const { data: existing } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('topic_id', topicId)
+        .eq('status', 'active')
+        .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`)
+        .maybeSingle()
+      if (cancelled) return
+      if (existing) {
+        cleanup()
+        router.push(`/conversation/${existing.id}`)
       }
     }
 
